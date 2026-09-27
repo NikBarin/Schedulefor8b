@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>РАСПИСАШКА 📅</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="fawicon.ico">
+    <style>
+        :root {
+            --bg1: #050b18;
+            --bg2: #0b1426;
+            --glass: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.12);
+            --accent: #67c8ff;
+            --accent-2: #d685ff;
+            --text: #eef5ff;
+            --muted: #9fb3d1;
+            --green: #6dd986;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(600px 400px at 10% 15%, rgba(103, 200, 255, 0.1), transparent),
+                      radial-gradient(600px 400px at 90% 85%, rgba(214, 133, 255, 0.07), transparent),
+                      linear-gradient(180deg, var(--bg1), var(--bg2));
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .day-selector {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            padding: 16px 0;
+            margin-bottom: 24px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .day-selector button {
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .day-selector button.active {
+            background: linear-gradient(90deg, rgba(103, 200, 255, 0.3), rgba(214, 133, 255, 0.3));
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .schedule {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+
+        .lesson-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            border-radius: 18px;
+            padding: 20px 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.3s ease;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .lesson-card.active-now {
+            border-color: var(--green);
+            box-shadow: 0 8px 24px rgba(109, 217, 134, 0.25);
+        }
+
+        .lesson-time {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .lesson-name {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .lesson-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 15px;
+            color: var(--muted);
+        }
+
+        .lesson-hw {
+            font-size: 15px;
+            margin-top: 8px;
+            color: var(--accent);
+            line-height: 1.4;
+        }
+
+        .lesson-countdown {
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 4px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            display: inline-block;
+            width: fit-content;
+        }
+        .lesson-countdown.before {
+            background: rgba(103, 200, 255, 0.12);
+            color: var(--accent);
+        }
+        .lesson-countdown.during {
+            background: rgba(109, 217, 134, 0.12);
+            color: var(--green);
+        }
+
+        .lesson-img {
+            margin-top: 12px;
+            border-radius: 14px;
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            cursor: zoom-in;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s;
+        }
+
+        .lesson-img:hover {
+            border-color: var(--accent);
+        }
+
+        #imgModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 40px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        #imgModal img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        #imgModal img:hover {
+            transform: scale(1.02);
+        }
+
+        #imgModalClose {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            font-size: 40px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.6);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        #imgModalClose:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 40px;
+            padding: 20px 0;
+            opacity: 0.7;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (min-width: 1400px) {
+            body {
+                padding: 40px;
+            }
+            .day-selector, .schedule, footer {
+                max-width: 1400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title">РАСПИСАШКА</div>
+        <div class="subtitle">Информация может быть неточной</div>
+    </header>
+
+    <div class="day-selector" id="daySelector">
+        <button class="active" data-day="Понедельник">Пн</button>
+        <button data-day="Вторник">Вт</button>
+        <button data-day="Среда">Ср</button>
+        <button data-day="Четверг">Чт</button>
+        <button data-day="Пятница">Пт</button>
+    </div>
+
+    <div class="schedule" id="scheduleList"></div>
+
+    <footer>Сделано с помощью ChatGPT</footer>
+
+    <div id="imgModal">
+        <div id="imgModalClose">✕</div>
+        <img id="imgModalContent" src="" alt="Увеличенное изображение">
+    </div>
+
+    <script>
+        const times = [
+            '8:00–8:40', '9:00–9:40', '10:00–10:40',
+            '11:00–11:40', '11:50–12:30', '12:40–13:20', '13:40–14:20'
+        ];
+
+        // Превращаем "12:40–13:20" в { start: 760, end: 800 } (минуты от полуночи)
+        function parseTimeRange(str) {
+            const [s, e] = str.split('–');
+            const toMin = t => {
+                const [h, m] = t.split(':').map(Number);
+                return h * 60 + m;
+            };
+            return { start: toMin(s), end: toMin(e) };
+        }
+
+        // Формат "X мин Y сек"
+        function formatCountdown(totalSeconds) {
+            if (totalSeconds <= 0) return '0 сек';
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            if (m > 0) return m + ' мин ' + (s < 10 ? '0' : '') + s + ' сек';
+            return s + ' сек';
+        }
+
+        // Формат для больших промежутков (часы + минуты)
+        function formatCountdownBig(totalSeconds) {
+            if (totalSeconds <= 0) return '0 сек';
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            const parts = [];
+            if (h > 0) parts.push(h + ' ч');
+            if (m > 0) parts.push(m + ' мин');
+            parts.push(s + ' сек');
+            return parts.join(' ');
+        }
+
+        // Дни недели по номеру JS (0=вс, 1=пн, ..., 6=сб)
+        const dayNames = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+        const schoolDays = ['Понедельник','Вторник','Среда','Четверг','Пятница'];
+
+        function getNextSchoolDay(dayName) {
+            const idx = schoolDays.indexOf(dayName);
+            if (idx === -1) return 'Понедельник';
+            if (idx + 1 < schoolDays.length) return schoolDays[idx + 1];
+            return 'Понедельник';
+        }
+
+        function getDayOffset(fromName, toName) {
+            const fromIdx = schoolDays.indexOf(fromName);
+            const toIdx = schoolDays.indexOf(toName);
+            if (fromIdx === -1 || toIdx === -1) return 1;
+            if (toIdx > fromIdx) return toIdx - fromIdx;
+            return (5 - fromIdx) + toIdx + 1;
+        }
+
+        const data = {
+  'Понедельник': [
+    { lesson: 'Классный час', room: '45', teacher: 'Виктор Викторович', hw: '', img: 'img1.jpg' },
+    { lesson: 'Русский', room: '33', teacher: 'Алёна Сергеевна', hw: 'упр.27 приготовиться к словарному диктанту.', img: '' },
+    { lesson: 'Алгебра', room: '46', teacher: 'Екатерина Сергеевна', hw: '', img: '' },
+    { lesson: 'Физкультура', room: 'любой', teacher: 'Сергей Александрович', hw: '', img: '' },
+    { lesson: 'Английский язык', room: '30/49а', teacher: 'Оксана Евгеньевна/Марина Владиславовна', hw: '', img: '' },
+    { lesson: 'Геометрия', room: '46', teacher: 'Екатерина Сергеевна', hw: 'с. 108-109 выучить определения, свойства, признаки прямоугольника, ромба, квадрата. Решить задачу из файла.', img: '' },
+    { lesson: 'Музыка', room: '37', teacher: 'Юлия Авенировна', hw: '', img: '' }
+  ],
+  'Вторник': [
+    { lesson: 'География', room: '49', teacher: 'Виктория Владимировна', hw: 'Повторить тему по параграфу 5. Для самопроверки устно выполните задания в конце параграфа.', img: '' },
+    { lesson: 'Коми', room: '22', teacher: 'Марина Иванова', hw: '', img: '' },
+    { lesson: 'Русский', room: '33', teacher: 'Алёна Сергеевна', hw: 'упр 73', img: '' },
+    { lesson: 'Химия', room: '28', teacher: 'Варвара Викторовна', hw: 'Учить таблицу с произношением химических элементов', img: '' },
+    { lesson: 'История', room: '48', teacher: 'Павл сергей', hw: '', img: '' },
+    { lesson: 'ОБЗР', room: '45', teacher: '', hw: 'Повторить записи', img: '' },
+    { lesson: 'Литератра', room: '33', teacher: 'Алёна Сергеевна', hw: '', img: '' }
+  ],
+  'Среда': [
+    { lesson: 'Литератра', room: '33', teacher: 'Алёна Сергеевна', hw: '', img: '' },
+    { lesson: 'Химия', room: '28', teacher: 'Варвара Викторовна', hw: '', img: '' },
+    { lesson: 'Физкультура', room: 'любой', teacher: 'Сергей Александрович', hw: '', img: '' },
+    { lesson: 'Алгебра', room: '46', teacher: 'Екатерина Сергеевна', hw: '', img: '' },
+    { lesson: 'Английский язык/Информатика', room: '49а/39', teacher: 'Марина Владиславовна/Иван Алексеевич', hw: '/Повторить правила перевода из 10 в 2 СС. Перевести числа 256, 333, 853 Повторить правила перевода из 2 в 10 СС. Перевести числа 101011, 11111101, 1111010101', img: '' },
+    { lesson: 'История', room: '31', teacher: 'Павел Сергеевич', hw: '', img: '' },
+    { lesson: 'Физика', room: '36', teacher: 'Иван Анатольевич', hw: '', img: '' }
+  ],
+  'Четверг': [
+    { lesson: 'Труд', room: '29', teacher: 'Надежда Сергеевна', hw: '', img: '' },
+    { lesson: 'География', room: '49', teacher: 'Виктория Владимировна', hw: '', img: '' },
+    { lesson: 'Геометрия', room: '46', teacher: 'Екатерина Сергеевна', hw: '', img: '' },
+    { lesson: 'Английский язык', room: '30/49а', teacher: 'Оксана Евгеньевна/Марина Владиславовна', hw: '', img: '' },
+    { lesson: 'Биология', room: '28', teacher: 'Елена Анатольевна', hw: '', img: '' },
+    { lesson: 'Русский Язык', room: '33', teacher: 'Алёна Сергеевна', hw: '', img: '' },
+    { lesson: 'История', room: '48', teacher: 'Павел Сергеевич', hw: '', img: '' }
+  ],
+  'Пятница': [
+    { lesson: 'Английский язык/Информатика', room: '30/39', teacher: 'Оксана Евгеньевна/Юлия Сергеевна', hw: 'стр 23 №9,10 пись', img: '' },
+    { lesson: 'Алгебра', room: '46', teacher: 'Екатерина Сергеевна', hw: '№369', img: '' },
+    { lesson: 'Физкультура', room: 'любой', teacher: 'Сергей Александрович', hw: '', img: '' },
+    { lesson: 'Физика', room: '29', teacher: 'Иван Анатольевич', hw: 'Прочитать п.7 еще раз тем, кто не читал! Повторить п.8-9. Подготовиться к опросу', img: '' },
+    { lesson: 'Теория Вероятности', room: '46', teacher: 'Екатерина Сергеевна', hw: 'решить задачи из файла', img: '20260911_114849.jpg' },
+    { lesson: 'Биология', room: '14', teacher: 'Елена Анатольевна', hw: 'Выучить содержание таблицы "Ткани". Прочитать п.4. Уметь приводить примеры органов и систем органов', img: '' }, 
+    { lesson: 'Родной русский', room: '33', teacher: 'Алёна Сергеевна', hw: '', img: '' }
+  ]
+};
+
+        const list = document.getElementById('scheduleList');
+        const dayButtons = document.querySelectorAll('#daySelector button');
+        let currentDay = 'Понедельник';
+        let userSwitched = false;
+        let autoSwitchedTo = null;
+
+        // Рисует карточки дня (без вызова updateCountdowns)
+        function renderDayCards(day) {
+            dayButtons.forEach(b => b.classList.toggle('active', b.dataset.day === day));
+            list.innerHTML = '';
+            data[day].forEach((row, i) => {
+                const card = document.createElement('div');
+                card.className = 'lesson-card';
+                card.innerHTML = `
+                    <div class="lesson-time">${times[i]}</div>
+                    <div class="lesson-name">${row.lesson}</div>
+                    <div class="lesson-info">
+                        <span>Каб. ${row.room}</span>
+                        <span>${row.teacher}</span>
+                    </div>
+                    ${row.hw ? `<div class="lesson-hw">ДЗ: ${row.hw}</div>` : ''}
+                    ${row.img ? `<img src="${row.img}" class="lesson-img" alt="Иллюстрация к уроку">` : ''}
+                    <div class="lesson-countdown" id="cd-${i}"></div>
+                `;
+                list.appendChild(card);
+            });
+            document.querySelectorAll('.lesson-img').forEach(img => {
+                img.onclick = () => openModal(img.src);
+            });
+        }
+
+        function renderDay(day) {
+            currentDay = day;
+            userSwitched = false;
+            autoSwitchedTo = null;
+            renderDayCards(day);
+            updateCountdowns();
+        }
+
+        function updateCountdowns() {
+            const now = new Date();
+            const nowSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            const todayName = dayNames[now.getDay()];
+
+            // Очищаем все плашки
+            data[currentDay].forEach((_, i) => {
+                const el = document.getElementById('cd-' + i);
+                if (el) { el.textContent = ''; el.className = 'lesson-countdown'; }
+                const card = el ? el.closest('.lesson-card') : null;
+                if (card) card.classList.remove('active-now');
+            });
+
+            // Случай 1: показываем сегодняшний день
+            if (currentDay === todayName) {
+                autoSwitchedTo = null;
+
+                for (let i = 0; i < data[currentDay].length; i++) {
+                    const { start, end } = parseTimeRange(times[i]);
+                    const startSec = start * 60;
+                    const endSec = end * 60;
+                    const el = document.getElementById('cd-' + i);
+                    const card = el ? el.closest('.lesson-card') : null;
+
+                    if (nowSeconds >= startSec && nowSeconds < endSec) {
+                        // Урок идёт
+                        const diff = endSec - nowSeconds;
+                        el.className = 'lesson-countdown during';
+                        el.textContent = 'До конца урока: ' + formatCountdown(diff);
+                        if (card) card.classList.add('active-now');
+                        return;
+                    } else if (nowSeconds < startSec) {
+                        // Урок ещё не начался
+                        const diff = startSec - nowSeconds;
+                        el.className = 'lesson-countdown before';
+                        el.textContent = 'До начала урока: ' + formatCountdown(diff);
+                        return;
+                    }
+                }
+
+                // Все уроки сегодня прошли — автопереключение на следующий день
+                if (!userSwitched) {
+                    const nextDay = getNextSchoolDay(todayName);
+                    autoSwitchedTo = nextDay;
+                    currentDay = nextDay;
+                    renderDayCards(nextDay);
+                    showNextDayCountdown(todayName, nowSeconds);
+                }
+                return;
+            }
+
+            // Случай 2: автопереключились на следующий день — продолжаем отсчёт
+            if (autoSwitchedTo === currentDay && !userSwitched) {
+                showNextDayCountdown(todayName, nowSeconds);
+                return;
+            }
+
+            // Случай 3: пользователь сам выбрал другой день — без отсчёта
+        }
+
+        // Считает и показывает отсчёт до первого урока следующего учебного дня
+        function showNextDayCountdown(todayName, nowSeconds) {
+            const nextDay = currentDay;
+            const offset = getDayOffset(todayName, nextDay);
+            const firstStart = parseTimeRange(times[0]).start * 60;
+            const targetSeconds = offset * 86400 + firstStart - nowSeconds;
+            const el = document.getElementById('cd-0');
+            if (el) {
+                el.className = 'lesson-countdown before';
+                el.textContent = 'До начала урока: ' + formatCountdownBig(targetSeconds);
+            }
+        }
+
+        // Модальное окно
+        const modal = document.getElementById("imgModal");
+        const modalImg = document.getElementById("imgModalContent");
+        const modalClose = document.getElementById("imgModalClose");
+
+        function openModal(src) {
+            modalImg.src = src;
+            modal.style.display = "flex";
+        }
+
+        modalClose.onclick = () => modal.style.display = "none";
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.style.display = "none";
+        };
+
+        // Обработчики кнопок дней
+        dayButtons.forEach(btn => btn.addEventListener('click', () => {
+            userSwitched = true;
+            autoSwitchedTo = null;
+            currentDay = btn.dataset.day;
+            renderDayCards(btn.dataset.day);
+        }));
+
+        // Автовыбор сегодняшнего дня при загрузке
+        const todayName = dayNames[new Date().getDay()];
+        const isSchoolDay = schoolDays.includes(todayName);
+        renderDay(isSchoolDay ? todayName : 'Понедельник');
+
+        // Обновление отсчёта каждую секунду
+        setInterval(updateCountdowns, 1000);
+    </script>
+</body>
+</html>
