@@ -1,35 +1,563 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>РАСПИСАШКА</title>
-  <script>
-    // Проверяем ширину экрана
-    if (window.innerWidth < 900) {
-      // Если меньше 900px — открываем мобильную версию
-      window.location.href = "mobile.html";
-    } else {
-      // Если больше — ПК версия
-      window.location.href = "desktop.html";
-    }
-  </script>
-  <style>
-    body {
-      background: #050b18;
-      color: white;
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-  </style>
+ <meta charset="utf-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <title>РАСПИСАШКА 📅</title>
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+ <link rel="icon" href="fawicon.ico">
+ <style>
+ :root {
+ --bg1: #050b18;
+ --bg2: #0b1426;
+ --glass: rgba(255, 255, 255, 0.08);
+ --border: rgba(255, 255, 255, 0.12);
+ --accent: #67c8ff;
+ --accent-2: #d685ff;
+ --text: #eef5ff;
+ --muted: #9fb3d1;
+ --green: #6dd986;
+ font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+ }
+
+ * {
+ box-sizing: border-box;
+ margin: 0;
+ padding: 0;
+ }
+
+ body {
+ background: radial-gradient(600px 400px at 10% 15%, rgba(103, 200, 255, 0.1), transparent),
+ radial-gradient(600px 400px at 90% 85%, rgba(214, 133, 255, 0.07), transparent),
+ linear-gradient(180deg, var(--bg1), var(--bg2));
+ color: var(--text);
+ display: flex;
+ flex-direction: column;
+ min-height: 100vh;
+ padding: 12px;
+ align-items: center;
+ }
+
+ header {
+ text-align: center;
+ padding: 12px 0 8px 0;
+ width: 100%;
+ max-width: 1200px;
+ }
+
+ .title {
+ font-size: clamp(20px, 5vw, 26px);
+ font-weight: 700;
+ margin-bottom: 4px;
+ }
+
+ .subtitle {
+ color: var(--muted);
+ font-size: clamp(12px, 3vw, 14px);
+ }
+
+ .day-selector {
+ display: flex;
+ overflow-x: auto;
+ gap: 8px;
+ justify-content: center;
+ padding: 10px 4px;
+ margin-bottom: 12px;
+ width: 100%;
+ max-width: 1200px;
+ scrollbar-width: none;
+ }
+ .day-selector::-webkit-scrollbar { display: none; }
+
+ .day-selector button {
+ flex-shrink: 0;
+ background: rgba(255, 255, 255, 0.05);
+ color: var(--text);
+ border: 1px solid var(--border);
+ border-radius: 12px;
+ padding: 8px 14px;
+ font-weight: 700;
+ cursor: pointer;
+ transition: all 0.2s ease;
+ white-space: nowrap;
+ font-size: clamp(13px, 3vw, 15px);
+ }
+
+ .day-selector button.active {
+ background: linear-gradient(90deg, rgba(103, 200, 255, 0.2), rgba(214, 133, 255, 0.2));
+ border-color: var(--accent);
+ transform: scale(1.03);
+ }
+
+ .schedule {
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+ width: 100%;
+ max-width: 1200px;
+ padding: 0 4px;
+ }
+
+ .lesson-card {
+ background: var(--glass);
+ border: 1px solid var(--border);
+ backdrop-filter: blur(10px);
+ -webkit-backdrop-filter: blur(10px);
+ border-radius: 14px;
+ padding: 12px 16px;
+ box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+ display: flex;
+ flex-direction: column;
+ gap: 6px;
+ transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.3s ease;
+ }
+
+ .lesson-card:hover {
+ transform: translateY(-2px);
+ box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+ }
+
+ .lesson-card.active-now {
+ border-color: var(--green);
+ box-shadow: 0 8px 24px rgba(109, 217, 134, 0.3);
+ }
+
+ .lesson-card:active {
+ transform: scale(0.99);
+ }
+
+ .lesson-time {
+ color: var(--muted);
+ font-weight: 600;
+ font-size: clamp(12px, 2.5vw, 14px);
+ }
+
+ .lesson-name {
+ font-size: clamp(15px, 4vw, 19px);
+ font-weight: 700;
+ line-height: 1.3;
+ }
+
+ .lesson-info {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ font-size: clamp(12px, 2.8vw, 14px);
+ color: var(--muted);
+ }
+
+ .lesson-hw {
+ font-size: clamp(12px, 2.8vw, 14px);
+ margin-top: 4px;
+ color: var(--accent);
+ line-height: 1.4;
+ }
+
+ .lesson-countdown {
+ font-size: clamp(12px, 3vw, 14px);
+ font-weight: 600;
+ margin-top: 2px;
+ padding: 4px 10px;
+ border-radius: 8px;
+ display: inline-block;
+ width: fit-content;
+ }
+
+ .lesson-countdown.before {
+ background: rgba(103, 200, 255, 0.12);
+ color: var(--accent);
+ }
+
+ .lesson-countdown.during {
+ background: rgba(109, 217, 134, 0.12);
+ color: var(--green);
+ }
+
+ .lesson-img {
+ margin-top: 8px;
+ border-radius: 10px;
+ max-width: 100%;
+ max-height: 160px;
+ object-fit: cover;
+ cursor: zoom-in;
+ border: 1px solid var(--border);
+ transition: border-color 0.2s;
+ }
+
+ .lesson-img:hover {
+ border-color: var(--accent);
+ }
+
+ #imgModal {
+ position: fixed;
+ inset: 0;
+ background: rgba(0, 0, 0, 0.85);
+ display: none;
+ justify-content: center;
+ align-items: center;
+ z-index: 9999;
+ padding: 20px;
+ animation: fadeIn 0.3s ease;
+ }
+
+ @keyframes fadeIn {
+ from { opacity: 0; }
+ to { opacity: 1; }
+ }
+
+ #imgModal img {
+ max-width: 90%;
+ max-height: 90vh;
+ border-radius: 12px;
+ box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+ transition: transform 0.3s ease;
+ }
+
+ #imgModal img:hover {
+ transform: scale(1.02);
+ }
+
+ #imgModalClose {
+ position: absolute;
+ top: 25px;
+ right: 25px;
+ font-size: 32px;
+ cursor: pointer;
+ color: white;
+ font-weight: bold;
+ background: rgba(0, 0, 0, 0.6);
+ width: 44px;
+ height: 44px;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ border-radius: 50%;
+ transition: background 0.2s;
+ }
+
+ #imgModalClose:hover {
+ background: rgba(0, 0, 0, 0.9);
+ }
+
+ footer {
+ text-align: center;
+ color: var(--muted);
+ font-size: clamp(11px, 2vw, 13px);
+ margin-top: auto;
+ padding: 12px 0;
+ opacity: 0.7;
+ width: 100%;
+ max-width: 1200px;
+ }
+
+ /* Desktop adjustments */
+ @media (min-width: 768px) {
+ body {
+ padding: 20px;
+ }
+ .day-selector {
+ justify-content: center;
+ padding: 14px 0;
+ }
+ .day-selector button {
+ padding: 10px 18px;
+ }
+ .lesson-card {
+ padding: 14px 18px;
+ }
+ }
+
+ @media (min-width: 1400px) {
+ body {
+ padding: 40px;
+ }
+ .day-selector, .schedule, footer {
+ max-width: 1400px;
+ }
+ }
+
+ /* Very narrow screens */
+ @media (max-width: 380px) {
+ .day-selector button {
+ padding: 7px 12px;
+ font-size: 12px;
+ }
+ .lesson-card {
+ padding: 10px 12px;
+ }
+ }
+ </style>
 </head>
-  <link rel="icon" href="fawicon.ico">
 <body>
-  <div>Загрузка расписания...</div>
+ <header>
+ <div class="title">РАСПИСАШКА</div>
+ <div class="subtitle">Информация может быть неточной</div>
+ </header>
+
+ <div class="day-selector" id="daySelector">
+ <button class="active" data-day="Понедельник">Пн</button>
+ <button data-day="Вторник">Вт</button>
+ <button data-day="Среда">Ср</button>
+ <button data-day="Четверг">Чт</button>
+ <button data-day="Пятница">Пт</button>
+ </div>
+
+ <div class="schedule" id="scheduleList"></div>
+
+ <footer>Сделано с помощью Алисы</footer>
+
+ <div id="imgModal">
+ <div id="imgModalClose">✕</div>
+ <img id="imgModalContent" src="" alt="Увеличенное изображение">
+ </div>
+
+ <script>
+ const times = [
+ '8:30–9:10','9:20–10:00','10:10–10:50',
+ '11:00–11:40','11:50–12:30','12:40–13:20',
+ '13:30–14:10','14:20–15:00','15:20–16:00'
+ ];
+
+ function parseTimeRange(str) {
+ const [s, e] = str.split('–');
+ const toMin = t => {
+ const [h, m] = t.split(':').map(Number);
+ return h * 60 + m;
+ };
+ return { start: toMin(s), end: toMin(e) };
+ }
+
+ function formatCountdown(totalSeconds) {
+ if (totalSeconds <= 0) return '0 сек';
+ const m = Math.floor(totalSeconds / 60);
+ const s = totalSeconds % 60;
+ if (m > 0) return m + ' мин ' + (s < 10 ? '0' : '') + s + ' сек';
+ return s + ' сек';
+ }
+
+ function formatCountdownBig(totalSeconds) {
+ if (totalSeconds <= 0) return '0 сек';
+ const d = Math.floor(totalSeconds / 86400);
+ const h = Math.floor((totalSeconds % 86400) / 3600);
+ const m = Math.floor((totalSeconds % 3600) / 60);
+ const s = totalSeconds % 60;
+ const parts = [];
+ if (d > 0) parts.push(d + ' д');
+ if (h > 0) parts.push(h + ' ч');
+ if (m > 0) parts.push(m + ' мин');
+ parts.push(s + ' сек');
+ return parts.join(' ');
+ }
+
+ const weekDays = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+ const schoolDays = ['Понедельник','Вторник','Среда','Четверг','Пятница'];
+
+ function getNextSchoolDay(dayName) {
+ const idx = schoolDays.indexOf(dayName);
+ if (idx === -1) return 'Понедельник';
+ if (idx + 1 < schoolDays.length) return schoolDays[idx + 1];
+ return 'Понедельник';
+ }
+
+ function getDayOffset(fromName, toName) {
+ const fromIdx = weekDays.indexOf(fromName);
+ const toIdx = weekDays.indexOf(toName);
+ if (fromIdx === -1 || toIdx === -1) return 1;
+ if (toIdx > fromIdx) return toIdx - fromIdx;
+ return 7 - fromIdx + toIdx;
+ }
+
+ function areLessonsDone(dayName, nowSec) {
+ if (!schoolDays.includes(dayName)) return true;
+ if (!data[dayName] || data[dayName].length === 0) return true;
+ const lastTime = times[Math.min(data[dayName].length - 1, times.length - 1)];
+ if (!lastTime) return true;
+ const lastEnd = parseTimeRange(lastTime).end * 60;
+ return nowSec >= lastEnd;
+ }
+
+ const data = {
+ 'Понедельник': [
+ { lesson: 'Разговоры о важном', room: '37', teacher: 'Алексей Владимирович', hw: '', img: 'img1.jpg' },
+ { lesson: 'Алгебра', room: '22', teacher: 'Лилия Альбертовна', hw: '', img: '' },
+ { lesson: 'Алгебра', room: '22', teacher: 'Лилия Альбертовна', hw: '', img: '' },
+ { lesson: 'Обед', room: 'Столовая', teacher: '', hw: 'кушать', img: '' },
+ { lesson: 'Русский язык', room: '27', teacher: 'Янина Александровна', hw: '', img: '' },
+ { lesson: 'Русский язык', room: '27', teacher: 'Янина Александровна', hw: '', img: '' },
+ { lesson: 'Физика', room: '33', teacher: 'Дмитрий Иванович', hw: '', img: '' },
+ { lesson: 'География', room: '24', teacher: 'Кристина Артуровна', hw: '', img: '' },
+ { lesson: 'Свободное время', room: '', teacher: '', hw: '', img: '' }
+ ],
+ 'Вторник': [
+ { lesson: 'Геометрия', room: '22', teacher: 'Лилия Альбертовна', hw: '', img: '' },
+ { lesson: 'Геометрия', room: '22', teacher: 'Лилия Альбертовна', hw: '', img: '' },
+ { lesson: 'Основы безопасности и защиты Родины', room: '34', teacher: 'Николай Николаевич', hw: '', img: '' },
+ { lesson: 'Обед', room: 'Столовая', teacher: '', hw: 'кушать', img: '' },
+ { lesson: 'Английский язык', room: '37', teacher: 'Марина Владимировна', hw: '', img: '' },
+ { lesson: 'Химия', room: '29', teacher: 'Оксана Александровна', hw: '', img: '' },
+ { lesson: 'Биология', room: '28', teacher: 'Юлия Денисовна', hw: '', img: '' },
+ { lesson: 'История', room: '29', teacher: 'Николай Николаевич', hw: '', img: '' },
+ { lesson: 'Свободное время', room: '', teacher: '', hw: '', img: '' }
+ ],
+ 'Среда': [
+ { lesson: 'Алгебра', room: '22', teacher: 'Лилия Альбертовна', hw: '', img: '' },
+ { lesson: 'Алгебра', room: '22', teacher: 'Лилия Альбертовна', hw: '', img: '' },
+ { lesson: 'Литература', room: '34', teacher: 'Сергей Александрович', hw: '', img: '' },
+ { lesson: 'Обед', room: 'Столовая', teacher: '', hw: 'кушать', img: '' },
+ { lesson: 'Информатика', room: '37', teacher: 'Анастасия Анатольевна', hw: '', img: '' },
+ { lesson: 'Физика', room: '33', teacher: 'Дмитрий Иванович', hw: '', img: '' },
+ { lesson: 'Химия', room: '29', teacher: 'Оксана Александровна', hw: '', img: '' },
+ { lesson: 'Химия', room: '29', teacher: 'Оксана Александровна', hw: '', img: '' },
+ { lesson: 'Свободное время', room: '', teacher: '', hw: '', img: '' }
+ ],
+ 'Четверг': [
+ { lesson: 'Геометрия', room: '22', teacher: 'Лилия Альбертовна', hw: '', img: '' },
+ { lesson: 'Английский язык', room: '37', teacher: 'Марина Владимировна', hw: '', img: '' },
+ { lesson: 'Физкультура', room: 'Спорт зал', teacher: 'Алексей Владимирович', hw: '', img: '' },
+ { lesson: 'Обед', room: 'Столовая', teacher: '', hw: 'кушать', img: '' },
+ { lesson: 'Физкультура', room: 'Спорт зал', teacher: 'Алексей Владимирович', hw: '', img: '' },
+ { lesson: 'Биология', room: '28', teacher: 'Юлия Денисовна', hw: '', img: '' },
+ { lesson: 'История', room: '34', teacher: 'Николай Николаевич', hw: '', img: '' },
+ { lesson: 'Русский язык', room: '27', teacher: 'Янина Александровна', hw: '', img: '' },
+ { lesson: 'Свободное время', room: '', teacher: '', hw: '', img: '' }
+ ],
+ 'Пятница': [
+ { lesson: 'География', room: '15', teacher: 'Кристина Артуровна', hw: '', img: '' },
+ { lesson: 'Практикум по биологии', room: '28', teacher: 'Юлия Денисовна', hw: '', img: '' },
+ { lesson: 'Физика', room: '33', teacher: 'Дмитрий Иванович', hw: '', img: '' },
+ { lesson: 'Обед', room: 'Столовая', teacher: '', hw: 'кушать', img: '' }, 
+ { lesson: 'История', room: '34', teacher: 'Николай Николаевич', hw: '', img: '' },
+ { lesson: 'Россия-мои горизонты', room: '33', teacher: 'Екатерина Николаевна', hw: '', img: '' },
+ { lesson: 'Вероятность и статистика', room: '22', teacher: 'Лилия Альбертовна', hw: '', img: '' },
+ { lesson: 'Английский язык', room: '28', teacher: 'Марина Владимировна', hw: '', img: '' },
+ { lesson: 'Свободное время', room: '', teacher: '', hw: '', img: '' }
+ ]
+};
+
+ const list = document.getElementById('scheduleList');
+ const dayButtons = document.querySelectorAll('#daySelector button');
+ let currentDay = 'Понедельник';
+
+ function renderDayCards(day) {
+ dayButtons.forEach(b => b.classList.toggle('active', b.dataset.day === day));
+ list.innerHTML = '';
+ data[day].forEach((row, i) => {
+ const card = document.createElement('div');
+ card.className = 'lesson-card';
+ card.innerHTML = `
+ <div class="lesson-time">${times[i] || ''}</div>
+ <div class="lesson-name">${row.lesson}</div>
+ <div class="lesson-info">
+ <span>${row.room ? 'Каб. ' + row.room : ''}</span>
+ <span>${row.teacher}</span>
+ </div>
+ ${row.hw ? '<div class="lesson-hw">ДЗ: ' + row.hw + '</div>' : ''}
+ ${row.img ? '<img src="' + row.img + '" class="lesson-img" alt="Иллюстрация к уроку">' : ''}
+ <div class="lesson-countdown" id="cd-' + i + '"></div>
+ `;
+ list.appendChild(card);
+ });
+ document.querySelectorAll('.lesson-img').forEach(img => {
+ img.onclick = () => openModal(img.src);
+ });
+ }
+
+ function renderDay(day) {
+ currentDay = day;
+ renderDayCards(day);
+ updateCountdowns();
+ }
+
+ function updateCountdowns() {
+ var now = new Date();
+ var nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+ var todayName = weekDays[now.getDay()];
+ var isTodaySchoolDay = schoolDays.includes(todayName);
+ var nextDay = getNextSchoolDay(todayName);
+
+ for (var i = 0; i < data[currentDay].length; i++) {
+ var el = document.getElementById('cd-' + i);
+ if (el) {
+ el.textContent = '';
+ el.className = 'lesson-countdown';
+ }
+ if (el) {
+ var card = el.closest('.lesson-card');
+ if (card) card.classList.remove('active-now');
+ }
+ }
+
+ if (currentDay === todayName && isTodaySchoolDay) {
+ for (var i = 0; i < data[currentDay].length; i++) {
+ if (!times[i]) continue;
+ var range = parseTimeRange(times[i]);
+ var startSec = range.start * 60;
+ var endSec = range.end * 60;
+ var el = document.getElementById('cd-' + i);
+ if (!el) continue;
+ var card = el.closest('.lesson-card');
+
+ if (nowSec >= startSec && nowSec < endSec) {
+ el.className = 'lesson-countdown during';
+ el.textContent = 'До конца урока: ' + formatCountdown(endSec - nowSec);
+ if (card) card.classList.add('active-now');
+ return;
+ } else if (nowSec < startSec) {
+ el.className = 'lesson-countdown before';
+ el.textContent = 'До начала урока: ' + formatCountdown(startSec - nowSec);
+ return;
+ }
+ }
+ return;
+ }
+
+ if (currentDay === nextDay) {
+ var todayDone = !isTodaySchoolDay || areLessonsDone(todayName, nowSec);
+ if (todayDone) {
+ var offset = getDayOffset(todayName, currentDay);
+ var firstStart = parseTimeRange(times[0]).start * 60;
+ var targetSec = offset * 86400 + firstStart - nowSec;
+ var el = document.getElementById('cd-0');
+ if (el) {
+ el.className = 'lesson-countdown before';
+ el.textContent = 'До начала урока: ' + formatCountdownBig(targetSec);
+ }
+ }
+ return;
+ }
+ }
+
+ var modal = document.getElementById("imgModal");
+ var modalImg = document.getElementById("imgModalContent");
+ var modalClose = document.getElementById("imgModalClose");
+
+ function openModal(src) {
+ modalImg.src = src;
+ modal.style.display = "flex";
+ }
+
+ modalClose.onclick = function() { modal.style.display = "none"; };
+ modal.onclick = function(e) { if (e.target === modal) modal.style.display = "none"; };
+
+ dayButtons.forEach(function(btn) {
+ btn.addEventListener('click', function() {
+ renderDay(btn.dataset.day);
+ });
+ });
+
+ var todayName = weekDays[new Date().getDay()];
+ if (schoolDays.includes(todayName)) {
+ var nowSec = new Date().getHours() * 3600 + new Date().getMinutes() * 60;
+ if (areLessonsDone(todayName, nowSec)) {
+ renderDay(getNextSchoolDay(todayName));
+ } else {
+ renderDay(todayName);
+ }
+ } else {
+ renderDay('Понедельник');
+ }
+
+ setInterval(updateCountdowns, 1000);
+ </script>
 </body>
 </html>
-
-
